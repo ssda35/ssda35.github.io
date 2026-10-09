@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SSDA High-Speed AI | Antseed Inference Node</title>
+  <meta name="description" content="High-performance, ultra low-cost decentralized AI inference on Antseed Network. Serving Claude Haiku 5.5 and Qwen 3.6 27B.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f17;
+      --card-bg: rgba(18, 24, 38, 0.7);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(56, 189, 248, 0.4);
+      --primary: #38bdf8;
+      --primary-glow: rgba(56, 189, 248, 0.15);
+      --green: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.2);
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(16, 185, 129, 0.08) 0%, transparent 40%);
+      color: var(--text);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 900px;
+      width: 100%;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #34d399;
+      margin-bottom: 20px;
+    }
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: #10b981;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #10b981;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    h1 {
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #fff 30%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 17px;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto 24px;
+    }
+
+    .meta-tags {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .tag b { color: var(--text); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .card:hover {
+      border-color: var(--border-hover);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), 0 0 20px var(--primary-glow);
+      transform: translateY(-2px);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .model-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .model-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .badge-paid {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--primary);
+    }
+    .badge-free {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+    }
+
+    .price-box {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .price-item span {
+      display: block;
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    .price-item strong {
+      font-family: var(--font-mono);
+      font-size: 17px;
+      color: #38bdf8;
+    }
+
+    .specs {
+      list-style: none;
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+    .specs li {
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      padding-bottom: 6px;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+    }
+    .specs li span { color: var(--text); font-weight: 500; font-family: var(--font-mono); }
+
+    .how-to {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 40px;
+    }
+    .how-to h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .code-box {
+      background: #06090e;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 16px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: #e2e8f0;
+      overflow-x: auto;
+      margin: 16px 0;
+      position: relative;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #cbd5e1;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: var(--font-sans);
+    }
+    .copy-btn:hover { background: rgba(255, 255, 255, 0.2); }
+
+    footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 14px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      width: 100%;
+    }
+    footer a { color: var(--primary); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge-status">
+        <span class="pulse-dot"></span>
+        Node Live on Base Mainnet · Uptime 99.9%
+      </div>
+      <h1>SSDA High-Speed AI</h1>
+      <p class="subtitle">High-throughput, lowest-latency AI inference node powering autonomous agents and developer tooling across the Antseed P2P Network.</p>
+      <div class="meta-tags">
+        <div class="tag">Peer ID: <b>0xe1ab...0156</b></div>
+        <div class="tag">Agent ID: <b>98862</b></div>
+        <div class="tag">Base Mainnet: <b>USDC Settled</b></div>
+        <div class="tag">Verified: <b>GitHub @ssda35</b></div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- Model 1: Claude Haiku 5.5 -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="model-title">Claude Haiku 5.5</div>
+            <div style="font-size: 13px; color: var(--text-muted); font-family: var(--font-mono);">claude-haiku-5-5</div>
+          </div>
+          <span class="model-badge badge-paid">Cheapest on Network</span>
+        </div>
+        <div class="price-box">
+          <div class="price-item">
+            <span>Input</span>
+            <strong>$0.02 / 1M</strong>
+          </div>
+          <div class="price-item">
+            <span>Cached</span>
+            <strong>$0.002 / 1M</strong>
+          </div>
+          <div class="price-item">
+            <span>Output</span>
+            <strong>$0.20 / 1M</strong>
+          </div>
+        </div>
+        <ul class="specs">
+          <li>Context Window <span>500,000 tokens</span></li>
+          <li>Max Completion <span>128,000 tokens</span></li>
+          <li>Capabilities <span>Text, Vision, Tool Use</span></li>
+          <li>Best For <span>Agent Coding, Claude Code, Fast Tasks</span></li>
+        </ul>
+      </div>
+
+      <!-- Model 2: Qwen3.6 27B -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="model-title">Qwen3 6 27B</div>
+            <div style="font-size: 13px; color: var(--text-muted); font-family: var(--font-mono);">qwen3-6-27b</div>
+          </div>
+          <span class="model-badge badge-free">Free Tier</span>
+        </div>
+        <div class="price-box">
+          <div class="price-item">
+            <span>Input</span>
+            <strong style="color: #34d399;">$0.00 / 1M</strong>
+          </div>
+          <div class="price-item">
+            <span>Cached</span>
+            <strong style="color: #34d399;">$0.00 / 1M</strong>
+          </div>
+          <div class="price-item">
+            <span>Output</span>
+            <strong style="color: #34d399;">$0.00 / 1M</strong>
+          </div>
+        </div>
+        <ul class="specs">
+          <li>Context Window <span>131,072 tokens</span></li>
+          <li>Max Completion <span>8,192 tokens</span></li>
+          <li>Capabilities <span>Coding, Reasoning, Tool Use</span></li>
+          <li>Best For <span>Free Coding, Unit Testing, Experiments</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- How to pin node -->
+    <div class="how-to">
+      <h2>⚡ How to Connect / Pin This Node</h2>
+      <p style="color: var(--text-muted); font-size: 14px;">
+        To route your AI requests directly through <strong>SSDA High-Speed AI</strong> (for Cursor, Claude Code, Cline, OpenCode, or Hermes), add this Peer ID to your Antseed Buyer config:
+      </p>
+      <div class="code-box">
+        <button class="copy-btn" onclick="navigator.clipboard.writeText('e1ab60df21f14870a38aebb9ffb81fae4ca70156')">Copy Peer ID</button>
+// Add to ~/.antseed/config.json under "buyer"."routingPreferences":
+"allowedPeerIds": [
+  "e1ab60df21f14870a38aebb9ffb81fae4ca70156"
+]
+      </div>
+      <p style="color: var(--text-muted); font-size: 13px;">
+        Once pinned, all your requests will resolve instantly with zero middleman markups.
+      </p>
+    </div>
+
+    <footer>
+      <p>Operated by <a href="https://github.com/ssda35" target="_blank">@ssda35</a> · Explore on <a href="https://antseedstats.com/sellers/0xe1ab60df21f14870a38aebb9ffb81fae4ca70156" target="_blank">AntSeedStats</a> · Settled in USDC on Base</p>
+    </footer>
+  </div>
+</body>
+</html>
